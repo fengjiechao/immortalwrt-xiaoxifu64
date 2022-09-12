@@ -7,6 +7,55 @@ Compared the official one, we allow to use hacks or non-upstreamable patches / m
 
 Default login address: http://192.168.1.1 or http://immortalwrt.lan, username: __root__, password: __password__.
 
+编译方法：
+
+1、在PVE里新建CT虚拟机Ubuntu18，4G内存，25G硬盘。
+2、在PVE里的Ubuntu18控制台里输入：
+apt -y update
+apt -y upgrade
+apt install -y openssl openssh-server wget
+sed -i 's/^#Port 22/Port 22/' /etc/ssh/sshd_config
+sed -i 's/^#PermitRootLogin/PermitRootLogin/' /etc/ssh/sshd_config
+sed -i 's/^#PasswordAuthentication/PasswordAuthentication/' /etc/ssh/sshd_config
+sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+timedatectl set-timezone Asia/Hong_Kong
+reboot
+
+3、用SSH工具连接
+useradd user
+passwd user
+
+在SSH工具里面，
+nano /etc/sudoers
+找到 root	ALL=(ALL:ALL) ALL，并在后面加入一行，写入刚才你建立的用户名：
+user ALL=(ALL:ALL) ALL
+在 %sudo ALL=(ALL:ALL) ALL 下一行添加：
+user ALL=(ALL:ALL) NOPASSWD:ALL
+
+切换为刚才新建的用户（user）
+su user
+sudo apt-get update
+sudo curl -s https://build-scripts.immortalwrt.eu.org/init_build_environment.sh | sudo bash
+cd ~
+sudo mkdir immortalwrt
+sudo chmod 777 immortalwrt
+git clone https://github.com/xiaoxifu64/immortalwrt
+cd immortalwrt
+
+临时设置代理：
+export http_proxy="http://192.168.x.x:xxXX"
+export https_proxy="http://192.168.x.x:xxxx"
+
+./scripts/feeds update -a
+./scripts/feeds install -a
+make menuconfig
+make download -j8
+make V=s -j8
+
+
+
+
 ## Development
 To build your own firmware you need a GNU/Linux, BSD or MacOSX system (case sensitive filesystem required). Cygwin is unsupported because of the lack of a case sensitive file system.<br/>
 
